@@ -52,7 +52,66 @@ app.get("/api/iocs", async (req, res) => {
     res.status(500).json({ error: String(err) });
   }
 });
+// Get a single IOC by ID
+app.get("/api/iocs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
 
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Update an IOC
+app.put("/api/iocs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { value, type, severity, confidence, status } = req.body;
+
+    const result = await pool.query(
+      `UPDATE iocs
+       SET value = COALESCE($1, value),
+           type = COALESCE($2, type),
+           severity = COALESCE($3, severity),
+           confidence = COALESCE($4, confidence),
+           status = COALESCE($5, status),
+           updated_at = NOW()
+       WHERE id = $6
+       RETURNING *`,
+      [value, type, severity, confidence, status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Delete an IOC
+app.delete("/api/iocs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("DELETE FROM iocs WHERE id = $1 RETURNING *", [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    res.json({ message: "IOC deleted", deleted: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
 app.listen(PORT, () => {
   console.log(`ThreatLens backend running on http://localhost:${PORT}`);
 });
