@@ -21,6 +21,39 @@ app.get("/api/db-test", async (req, res) => {
   }
 });
 
+// Create a new IOC
+app.post("/api/iocs", async (req, res) => {
+  try {
+    const { value, type, severity, confidence } = req.body;
+
+    if (!value || !type) {
+      return res.status(400).json({ error: "value and type are required" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO iocs (value, type, severity, confidence)
+       VALUES ($1, $2, COALESCE($3, 'Medium'), COALESCE($4, 50))
+       RETURNING *`,
+      [value, type, severity, confidence]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Get all IOCs
+app.get("/api/iocs", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM iocs ORDER BY created_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`ThreatLens backend running on http://localhost:${PORT}`);
 });
+
