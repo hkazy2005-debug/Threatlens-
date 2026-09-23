@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import { pool } from "./db";
 import { validateIOC, normalizeIOC } from "./validation";
+import authRoutes from "./auth";
 
 const app = express();
 const PORT = 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/auth", authRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "ThreatLens backend is running" });
