@@ -16,6 +16,7 @@ export default function IOCManagement() {
   const [type, setType] = useState("IP");
   const [severity, setSeverity] = useState("Medium");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const loadIOCs = () => {
     fetch("http://localhost:4000/api/iocs")
@@ -31,15 +32,22 @@ export default function IOCManagement() {
     loadIOCs();
   }, []);
 
-  const handleAddIOC = async (e: React.FormEvent) => {
+    const handleAddIOC = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value) return;
+    setError("");
 
-    await fetch("http://localhost:4000/api/iocs", {
+    const res = await fetch("http://localhost:4000/api/iocs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value, type, severity, confidence: 50 }),
     });
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Failed to add IOC");
+      return;
+    }
 
     setValue("");
     loadIOCs();
@@ -63,6 +71,12 @@ export default function IOCManagement() {
           onSubmit={handleAddIOC}
           className="rounded-xl bg-slate-900 border border-slate-800 p-5 mb-8 flex flex-wrap gap-3 items-end"
         >
+                    {error && (
+            <div className="w-full rounded-lg bg-red-950 border border-red-800 px-4 py-2 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+          
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm text-slate-300 mb-1">IOC Value</label>
             <input

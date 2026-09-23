@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { pool } from "./db";
+import { validateIOC, normalizeIOC } from "./validation";
 
 const app = express();
 const PORT = 4000;
@@ -30,11 +31,38 @@ app.post("/api/iocs", async (req, res) => {
       return res.status(400).json({ error: "value and type are required" });
     }
 
+    const validation = validateIOC(value, type);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    const normalizedValue = normalizeIOC(value, type);
+
+    // Check if this IOC already exists (same value + type)
+    const existing = await pool.query(
+      "SELECT * FROM iocs WHERE value = $1 AND type = $2",
+      [normalizedValue, type]
+    );
+
+    if (existing.rows.length > 0) {
+      // Already exists — just update last_seen instead of creating a duplicate
+      const updated = await pool.query(
+        `UPDATE iocs SET last_seen = NOW(), updated_at = NOW()
+         WHERE id = $1
+         RETURNING *`,
+        [existing.rows[0].id]
+      );
+      return res.status(200).json({
+        message: "IOC already existed, updated last_seen",
+        ioc: updated.rows[0],
+      });
+    }
+
     const result = await pool.query(
       `INSERT INTO iocs (value, type, severity, confidence)
        VALUES ($1, $2, COALESCE($3, 'Medium'), COALESCE($4, 50))
        RETURNING *`,
-      [value, type, severity, confidence]
+      [normalizedValue, type, severity, confidence]
     );
 
     res.status(201).json(result.rows[0]);

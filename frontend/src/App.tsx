@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./page/LoginPage/Login";
+import Login from "./page/LOGINpage/Login";
 import Dashboard from "./page/DAShB/Dashboard";
 import IOCManagement from "./page/IOCs/IOCManagement";
 
@@ -7,7 +7,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login/>} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/iocs" element={<IOCManagement />} />
         <Route path="/" element={<Navigate to="/login" />} />
