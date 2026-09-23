@@ -3,6 +3,8 @@ import cors from "cors";
 import { pool } from "./db";
 import { validateIOC, normalizeIOC } from "./validation";
 import authRoutes from "./auth";
+import { requireAuth } from "./authMiddleware";
+
 
 const app = express();
 const PORT = 4000;
@@ -11,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 
-app.get("/api/health", (req, res) => {
+app.get("/api/iocs", requireAuth, async (req, res) => {
   res.json({ status: "ok", message: "ThreatLens backend is running" });
 });
 
@@ -25,7 +27,7 @@ app.get("/api/db-test", async (req, res) => {
 });
 
 // Create a new IOC
-app.post("/api/iocs", async (req, res) => {
+app.post("/api/iocs", requireAuth, async (req, res) => {
   try {
     const { value, type, severity, confidence } = req.body;
 
@@ -99,7 +101,7 @@ app.get("/api/iocs/:id", async (req, res) => {
 });
 
 // Update an IOC
-app.put("/api/iocs/:id", async (req, res) => {
+app.put("/api/iocs/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { value, type, severity, confidence, status } = req.body;
@@ -128,7 +130,7 @@ app.put("/api/iocs/:id", async (req, res) => {
 });
 
 // Delete an IOC
-app.delete("/api/iocs/:id", async (req, res) => {
+app.delete("/api/iocs/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query("DELETE FROM iocs WHERE id = $1 RETURNING *", [id]);

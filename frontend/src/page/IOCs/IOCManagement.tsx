@@ -18,14 +18,24 @@ export default function IOCManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadIOCs = () => {
-    fetch("http://localhost:4000/api/iocs")
+    const loadIOCs = () => {
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:4000/api/iocs", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => res.json())
       .then((data) => {
-        setIocs(data);
+        if (Array.isArray(data)) {
+          setIocs(data);
+        } else {
+          setIocs([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setIocs([]);
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
