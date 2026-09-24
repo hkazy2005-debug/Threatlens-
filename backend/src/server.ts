@@ -4,7 +4,7 @@ import { pool } from "./db";
 import { validateIOC, normalizeIOC } from "./validation";
 import authRoutes from "./auth";
 import { requireAuth } from "./authMiddleware";
-
+import { enrichIP, enrichHash } from "./enrichment";
 
 const app = express();
 const PORT = 4000;
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 
-app.get("/api/iocs", requireAuth, async (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "ThreatLens backend is running" });
 });
 
@@ -42,14 +42,12 @@ app.post("/api/iocs", requireAuth, async (req, res) => {
 
     const normalizedValue = normalizeIOC(value, type);
 
-    // Check if this IOC already exists (same value + type)
     const existing = await pool.query(
       "SELECT * FROM iocs WHERE value = $1 AND type = $2",
       [normalizedValue, type]
     );
 
     if (existing.rows.length > 0) {
-      // Already exists — just update last_seen instead of creating a duplicate
       const updated = await pool.query(
         `UPDATE iocs SET last_seen = NOW(), updated_at = NOW()
          WHERE id = $1
@@ -76,7 +74,7 @@ app.post("/api/iocs", requireAuth, async (req, res) => {
 });
 
 // Get all IOCs
-app.get("/api/iocs", async (req, res) => {
+app.get("/api/iocs", requireAuth, async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM iocs ORDER BY created_at DESC");
     res.json(result.rows);
@@ -84,8 +82,9 @@ app.get("/api/iocs", async (req, res) => {
     res.status(500).json({ error: String(err) });
   }
 });
+
 // Get a single IOC by ID
-app.get("/api/iocs/:id", async (req, res) => {
+app.get("/api/iocs/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
@@ -95,6 +94,33 @@ app.get("/api/iocs/:id", async (req, res) => {
     }
 
     res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Enrich an IOC with external threat intelligence
+app.post("/api/iocs/:id/enrich", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const iocResult = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
+    if (iocResult.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    const ioc = iocResult.rows[0];
+    let enrichment;
+
+    if (ioc.type === "IP") {
+      enrichment = await enrichIP(ioc.value);
+    } else if (ioc.type === "MD5" || ioc.type === "SHA-1" || ioc.type === "SHA-256") {
+      enrichment = await enrichHash(ioc.value);
+    } else {
+      return res.status(400).json({ error: `Enrichment not yet supported for type: ${ioc.type}` });
+    }
+
+    res.json({ ioc, enrichment });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
@@ -144,7 +170,9 @@ app.delete("/api/iocs/:id", requireAuth, async (req, res) => {
     res.status(500).json({ error: String(err) });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`ThreatLens backend running on http://localhost:${PORT}`);
 });
+
 
