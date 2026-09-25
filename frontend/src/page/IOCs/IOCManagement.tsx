@@ -17,6 +17,8 @@ export default function IOCManagement() {
   const [severity, setSeverity] = useState("Medium");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [scoringId, setScoringId] = useState<number | null>(null);
+  const [scoreResult, setScoreResult] = useState<any>(null);
 
     const loadIOCs = () => {
     const token = localStorage.getItem("token");
@@ -61,6 +63,23 @@ export default function IOCManagement() {
 
     setValue("");
     loadIOCs();
+  };
+  
+  const handleCalculateTRIS = async (id: number) => {
+    setScoringId(id);
+    setScoreResult(null);
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/iocs/${id}/tris`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setScoreResult({ id, ...data });
+    } catch (err) {
+      setScoreResult({ id, error: "Failed to calculate TRIS" });
+    }
   };
 
   const severityColor = (sev: string) => {
@@ -153,19 +172,63 @@ export default function IOCManagement() {
                   <th className="px-5 py-3">Severity</th>
                   <th className="px-5 py-3">Confidence</th>
                   <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">TRIS</th>
                 </tr>
               </thead>
               <tbody>
-                {iocs.map((ioc) => (
-                  <tr key={ioc.id} className="border-b border-slate-800/50 text-white">
-                    <td className="px-5 py-3 font-mono text-sm">{ioc.value}</td>
-                    <td className="px-5 py-3">{ioc.type}</td>
-                    <td className={`px-5 py-3 font-medium ${severityColor(ioc.severity)}`}>
-                      {ioc.severity}
-                    </td>
-                    <td className="px-5 py-3">{ioc.confidence}%</td>
-                    <td className="px-5 py-3 text-slate-300">{ioc.status}</td>
-                  </tr>
+                                {iocs.map((ioc) => (
+                  <>
+                    <tr key={ioc.id} className="border-b border-slate-800/50 text-white">
+                      <td className="px-5 py-3 font-mono text-sm">{ioc.value}</td>
+                      <td className="px-5 py-3">{ioc.type}</td>
+                      <td className={`px-5 py-3 font-medium ${severityColor(ioc.severity)}`}>
+                        {ioc.severity}
+                      </td>
+                      <td className="px-5 py-3">{ioc.confidence}%</td>
+                      <td className="px-5 py-3 text-slate-300">{ioc.status}</td>
+                      <td className="px-5 py-3">
+                        <button
+                          onClick={() => handleCalculateTRIS(ioc.id)}
+                          className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                        >
+                          Calculate
+                        </button>
+                      </td>
+                    </tr>
+                    {scoreResult && scoreResult.id === ioc.id && (
+                      <tr className="bg-slate-800/50">
+                        <td colSpan={6} className="px-5 py-4">
+                          {scoreResult.error ? (
+                            <p className="text-red-400 text-sm">{scoreResult.error}</p>
+                          ) : (
+                            <div>
+                              <p className="text-white font-bold text-lg mb-2">
+                                TRIS Score: {scoreResult.tris?.total}/100
+                              </p>
+                              <div className="grid grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <p className="text-slate-400">Source Reputation</p>
+                                  <p className="text-white">+{scoreResult.tris?.sourceReputation}</p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-400">Confidence</p>
+                                  <p className="text-white">+{scoreResult.tris?.confidenceScore}</p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-400">Recency</p>
+                                  <p className="text-white">+{scoreResult.tris?.recencyScore}</p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-400">Internal Sightings</p>
+                                  <p className="text-white">+{scoreResult.tris?.internalSightings}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))}
               </tbody>
             </table>
