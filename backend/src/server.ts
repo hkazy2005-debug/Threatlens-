@@ -5,6 +5,7 @@ import { validateIOC, normalizeIOC } from "./validation";
 import authRoutes from "./auth";
 import { requireAuth } from "./authMiddleware";
 import { enrichIP, enrichHash } from "./enrichment";
+import { calculateTRIS } from "./scoring";
 
 const app = express();
 const PORT = 4000;
@@ -59,6 +60,40 @@ app.post("/api/iocs", requireAuth, async (req, res) => {
         ioc: updated.rows[0],
       });
     }
+    
+// Calculate TRIS for an IOC
+app.post("/api/iocs/:id/tris", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const iocResult = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
+    if (iocResult.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    const ioc = iocResult.rows[0];
+    let abuseConfidenceScore: number | undefined;
+
+    if (ioc.type === "IP") {
+      const enrichment = await enrichIP(ioc.value);
+      abuseConfidenceScore = enrichment.abuseConfidenceScore;
+    } else if (ioc.type === "MD5" || ioc.type === "SHA-1" || ioc.type === "SHA-256") {
+      const enrichment = await enrichHash(ioc.value);
+      abuseConfidenceScore = enrichment.abuseConfidenceScore;
+    }
+
+    const tris = calculateTRIS({
+      abuseConfidenceScore,
+      confidence: ioc.confidence,
+      lastSeen: ioc.last_seen,
+      internalSightingsCount: 0,
+    });
+
+    res.json({ ioc, tris });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
 
     const result = await pool.query(
       `INSERT INTO iocs (value, type, severity, confidence)
@@ -121,6 +156,40 @@ app.post("/api/iocs/:id/enrich", requireAuth, async (req, res) => {
     }
 
     res.json({ ioc, enrichment });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Calculate TRIS for an IOC
+app.post("/api/iocs/:id/tris", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const iocResult = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
+    if (iocResult.rows.length === 0) {
+      return res.status(404).json({ error: "IOC not found" });
+    }
+
+    const ioc = iocResult.rows[0];
+    let abuseConfidenceScore: number | undefined;
+
+    if (ioc.type === "IP") {
+      const enrichment = await enrichIP(ioc.value);
+      abuseConfidenceScore = enrichment.abuseConfidenceScore;
+    } else if (ioc.type === "MD5" || ioc.type === "SHA-1" || ioc.type === "SHA-256") {
+      const enrichment = await enrichHash(ioc.value);
+      abuseConfidenceScore = enrichment.abuseConfidenceScore;
+    }
+
+    const tris = calculateTRIS({
+      abuseConfidenceScore,
+      confidence: ioc.confidence,
+      lastSeen: ioc.last_seen,
+      internalSightingsCount: 0,
+    });
+
+    res.json({ ioc, tris });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
