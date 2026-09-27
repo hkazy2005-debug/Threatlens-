@@ -6,6 +6,8 @@ import authRoutes from "./auth";
 import { requireAuth } from "./authMiddleware";
 import { enrichIP, enrichHash } from "./enrichment";
 import { calculateTRIS } from "./scoring";
+import { ingestFirewallEvents, ingestDNSEvents, ingestEDREvents } from "./ingestion";
+import { runCorrelation } from "./correlation";
 
 const app = express();
 const PORT = 4000;
@@ -60,40 +62,6 @@ app.post("/api/iocs", requireAuth, async (req, res) => {
         ioc: updated.rows[0],
       });
     }
-    
-// Calculate TRIS for an IOC
-app.post("/api/iocs/:id/tris", requireAuth, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const iocResult = await pool.query("SELECT * FROM iocs WHERE id = $1", [id]);
-    if (iocResult.rows.length === 0) {
-      return res.status(404).json({ error: "IOC not found" });
-    }
-
-    const ioc = iocResult.rows[0];
-    let abuseConfidenceScore: number | undefined;
-
-    if (ioc.type === "IP") {
-      const enrichment = await enrichIP(ioc.value);
-      abuseConfidenceScore = enrichment.abuseConfidenceScore;
-    } else if (ioc.type === "MD5" || ioc.type === "SHA-1" || ioc.type === "SHA-256") {
-      const enrichment = await enrichHash(ioc.value);
-      abuseConfidenceScore = enrichment.abuseConfidenceScore;
-    }
-
-    const tris = calculateTRIS({
-      abuseConfidenceScore,
-      confidence: ioc.confidence,
-      lastSeen: ioc.last_seen,
-      internalSightingsCount: 0,
-    });
-
-    res.json({ ioc, tris });
-  } catch (err) {
-    res.status(500).json({ error: String(err) });
-  }
-});
 
     const result = await pool.query(
       `INSERT INTO iocs (value, type, severity, confidence)
@@ -195,6 +163,34 @@ app.post("/api/iocs/:id/tris", requireAuth, async (req, res) => {
   }
 });
 
+// Run correlation between IOCs and internal events
+app.post("/api/correlation/run", requireAuth, async (req, res) => {
+  try {
+    const result = await runCorrelation();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Get sightings for a specific IOC
+app.get("/api/iocs/:id/sightings", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT s.*, e.event_source, e.timestamp, e.source_ip, e.destination_ip, e.domain, e.host
+       FROM sightings s
+       JOIN internal_events e ON s.event_id = e.id
+       WHERE s.ioc_id = $1
+       ORDER BY e.timestamp DESC`,
+      [id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 // Update an IOC
 app.put("/api/iocs/:id", requireAuth, async (req, res) => {
   try {
@@ -235,6 +231,22 @@ app.delete("/api/iocs/:id", requireAuth, async (req, res) => {
     }
 
     res.json({ message: "IOC deleted", deleted: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Import synthetic internal security events
+app.post("/api/events/import", requireAuth, async (req, res) => {
+  try {
+    const firewallCount = await ingestFirewallEvents();
+    const dnsCount = await ingestDNSEvents();
+    const edrCount = await ingestEDREvents();
+
+    res.json({
+      message: "Import complete",
+      imported: { firewall: firewallCount, dns: dnsCount, edr: edrCount },
+    });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

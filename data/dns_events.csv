@@ -1,0 +1,11 @@
+timestamp,client_ip,domain,query_type
+2026-09-20T08:10:15Z,192.168.1.15,malicious-domain-example.com,A
+2026-09-20T08:44:02Z,192.168.1.22,google.com,A
+2026-09-20T09:15:37Z,192.168.1.30,suspicious-c2-server.net,A
+2026-09-20T10:02:19Z,192.168.1.11,microsoft.com,A
+2026-09-20T11:30:44Z,192.168.1.15,malicious-domain-example.com,A
+2026-09-20T12:45:01Z,192.168.1.44,github.com,A
+2026-09-20T13:22:38Z,192.168.1.30,suspicious-c2-server.net,A
+2026-09-20T14:10:52Z,192.168.1.55,amazon.com,A
+2026-09-20T15:33:19Z,192.168.1.22,cloudflare.com,A
+2026-09-20T16:48:07Z,192.168.1.15,malicious-domain-example.com,A
