@@ -236,6 +236,48 @@ app.delete("/api/iocs/:id", requireAuth, async (req, res) => {
   }
 });
 
+// Get all alerts
+app.get("/api/alerts", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT a.*, i.value AS ioc_value, i.type AS ioc_type
+      FROM alerts a
+      JOIN iocs i ON a.ioc_id = i.id
+      ORDER BY a.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Update alert status
+app.put("/api/alerts/:id/status", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ["New", "Acknowledged", "In Progress", "Resolved", "Closed"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const result = await pool.query(
+      `UPDATE alerts SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Alert not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+
 // Import synthetic internal security events
 app.post("/api/events/import", requireAuth, async (req, res) => {
   try {
