@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./page/LoginPage/Login";
+import Login from"./page/LOGINpage/Login";
 import Dashboard from "./page/DAShB/Dashboard";
 import IOCManagement from "./page/IOCs/IOCManagement";
 import Alerts from "./page/Alerts/Alerts";
+import Incidents from "./page/Incidents/Incidents";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/iocs" element={<IOCManagement />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route path="/incidents" element={<Incidents />} />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
@@ -19,5 +21,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
 
 
