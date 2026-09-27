@@ -277,6 +277,93 @@ app.put("/api/alerts/:id/status", requireAuth, async (req, res) => {
   }
 });
 
+// Create an incident from an alert
+app.post("/api/incidents", requireAuth, async (req, res) => {
+  try {
+    const { title, description, alertId } = req.body;
+
+    if (!title || !alertId) {
+      return res.status(400).json({ error: "title and alertId are required" });
+    }
+
+    const alertResult = await pool.query("SELECT * FROM alerts WHERE id = $1", [alertId]);
+    if (alertResult.rows.length === 0) {
+      return res.status(404).json({ error: "Alert not found" });
+    }
+    const alert = alertResult.rows[0];
+
+    const countResult = await pool.query("SELECT COUNT(*) FROM incidents");
+    const nextNumber = parseInt(countResult.rows[0].count) + 1;
+    const incidentNumber = `INC-${String(nextNumber).padStart(3, "0")}`;
+
+    const incidentResult = await pool.query(
+      `INSERT INTO incidents (incident_number, title, description, severity)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [incidentNumber, title, description || null, alert.severity]
+    );
+    const incident = incidentResult.rows[0];
+
+    await pool.query(
+      `INSERT INTO incident_alerts (incident_id, alert_id) VALUES ($1, $2)`,
+      [incident.id, alertId]
+    );
+    await pool.query(
+      `INSERT INTO incident_iocs (incident_id, ioc_id) VALUES ($1, $2)`,
+      [incident.id, alert.ioc_id]
+    );
+
+    res.status(201).json(incident);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Get all incidents
+app.get("/api/incidents", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM incidents ORDER BY created_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Get one incident with full details (alerts + IOCs)
+app.get("/api/incidents/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const incidentResult = await pool.query("SELECT * FROM incidents WHERE id = $1", [id]);
+    if (incidentResult.rows.length === 0) {
+      return res.status(404).json({ error: "Incident not found" });
+    }
+
+    const alertsResult = await pool.query(
+      `SELECT a.* FROM alerts a
+       JOIN incident_alerts ia ON a.id = ia.alert_id
+       WHERE ia.incident_id = $1`,
+      [id]
+    );
+
+    const iocsResult = await pool.query(
+      `SELECT i.* FROM iocs i
+       JOIN incident_iocs ii ON i.id = ii.ioc_id
+       WHERE ii.incident_id = $1`,
+      [id]
+    );
+
+    res.json({
+      incident: incidentResult.rows[0],
+      alerts: alertsResult.rows,
+      iocs: iocsResult.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+
 
 // Import synthetic internal security events
 app.post("/api/events/import", requireAuth, async (req, res) => {
@@ -297,5 +384,6 @@ app.post("/api/events/import", requireAuth, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`ThreatLens backend running on http://localhost:${PORT}`);
 });
+
 
 
