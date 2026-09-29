@@ -353,11 +353,50 @@ app.get("/api/incidents/:id", requireAuth, async (req, res) => {
       [id]
     );
 
+        const mitreResult = await pool.query(
+      `SELECT m.* FROM mitre_techniques m
+       JOIN incident_mitre_mappings imm ON m.id = imm.technique_id
+       WHERE imm.incident_id = $1`,
+      [id]
+    );
+
     res.json({
       incident: incidentResult.rows[0],
       alerts: alertsResult.rows,
       iocs: iocsResult.rows,
+      mitreTechniques: mitreResult.rows,
     });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Get all MITRE techniques (for a dropdown/selector)
+app.get("/api/mitre/techniques", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM mitre_techniques ORDER BY technique_id");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Map a technique to an incident
+app.post("/api/incidents/:id/mitre", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { techniqueId } = req.body;
+
+    if (!techniqueId) {
+      return res.status(400).json({ error: "techniqueId is required" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO incident_mitre_mappings (incident_id, technique_id) VALUES ($1, $2) RETURNING *`,
+      [id, techniqueId]
+    );
+
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
@@ -365,6 +404,8 @@ app.get("/api/incidents/:id", requireAuth, async (req, res) => {
 
 
 
+
+    
 // Import synthetic internal security events
 app.post("/api/events/import", requireAuth, async (req, res) => {
   try {
