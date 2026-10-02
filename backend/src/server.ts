@@ -402,6 +402,60 @@ app.post("/api/incidents/:id/mitre", requireAuth, async (req, res) => {
   }
 });
 
+// Export an incident as CSV
+app.get("/api/incidents/:id/export", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const incidentResult = await pool.query("SELECT * FROM incidents WHERE id = $1", [id]);
+    if (incidentResult.rows.length === 0) {
+      return res.status(404).json({ error: "Incident not found" });
+    }
+    const incident = incidentResult.rows[0];
+
+    const iocsResult = await pool.query(
+      `SELECT i.* FROM iocs i
+       JOIN incident_iocs ii ON i.id = ii.ioc_id
+       WHERE ii.incident_id = $1`,
+      [id]
+    );
+
+    const mitreResult = await pool.query(
+      `SELECT m.* FROM mitre_techniques m
+       JOIN incident_mitre_mappings imm ON m.id = imm.technique_id
+       WHERE imm.incident_id = $1`,
+      [id]
+    );
+
+    const lines = [
+      "ThreatLens Incident Report",
+      "",
+      `Incident Number,${incident.incident_number}`,
+      `Title,${incident.title}`,
+      `Description,"${(incident.description || "").replace(/"/g, '""')}"`,
+      `Severity,${incident.severity}`,
+      `Status,${incident.status}`,
+      `Created,${incident.created_at}`,
+      "",
+      "Linked IOCs",
+      "Value,Type,Severity,Confidence",
+      ...iocsResult.rows.map((i) => `${i.value},${i.type},${i.severity},${i.confidence}`),
+      "",
+      "MITRE ATT&CK Techniques",
+      "Technique ID,Name,Tactic",
+      ...mitreResult.rows.map((m) => `${m.technique_id},${m.name},${m.tactic}`),
+    ];
+
+    const csv = lines.join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="${incident.incident_number}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 
 
 

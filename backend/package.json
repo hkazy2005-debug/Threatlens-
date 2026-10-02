@@ -19,6 +19,7 @@
     "csv-parse": "^7.0.2",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
     "validator": "^13.15.35"
@@ -27,6 +28,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.2",
     "@types/pg": "^8.23.1",

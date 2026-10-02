@@ -62,6 +62,20 @@ export default function Incidents() {
     viewIncident(selected.incident.id);
   };
 
+  const downloadReport = async (id: number, incidentNumber: string) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`http://localhost:4000/api/incidents/${id}/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${incidentNumber}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     loadIncidents();
     const token = localStorage.getItem("token");
@@ -135,9 +149,17 @@ export default function Incidents() {
 
         {selected && (
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-6">
-            <h2 className="text-xl font-bold text-white mb-1">
-              {selected.incident.incident_number}: {selected.incident.title}
-            </h2>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xl font-bold text-white">
+                {selected.incident.incident_number}: {selected.incident.title}
+              </h2>
+              <button
+                onClick={() => downloadReport(selected.incident.id, selected.incident.incident_number)}
+                className="text-sm bg-slate-800 border border-slate-700 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700"
+              >
+                Export CSV
+              </button>
+            </div>
             <p className="text-slate-400 text-sm mb-4">{selected.incident.description}</p>
 
             <div className="grid grid-cols-2 gap-6">
@@ -190,6 +212,3 @@ export default function Incidents() {
     </div>
   );
 }
-
-
-
