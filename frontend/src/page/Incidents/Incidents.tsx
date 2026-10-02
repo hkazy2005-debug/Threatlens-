@@ -14,12 +14,14 @@ interface IncidentDetail {
   incident: Incident;
   alerts: any[];
   iocs: any[];
+  mitreTechniques: any[];
 }
 
 export default function Incidents() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<IncidentDetail | null>(null);
+  const [techniques, setTechniques] = useState<any[]>([]);
 
   const loadIncidents = () => {
     const token = localStorage.getItem("token");
@@ -46,8 +48,29 @@ export default function Incidents() {
     setSelected(data);
   };
 
+  const addTechnique = async (techniqueId: number) => {
+    if (!selected) return;
+    const token = localStorage.getItem("token");
+    await fetch(`http://localhost:4000/api/incidents/${selected.incident.id}/mitre`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ techniqueId }),
+    });
+    viewIncident(selected.incident.id);
+  };
+
   useEffect(() => {
     loadIncidents();
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:4000/api/mitre/techniques", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setTechniques(Array.isArray(data) ? data : []))
+      .catch(() => setTechniques([]));
   }, []);
 
   const severityColor = (sev: string) => {
@@ -135,9 +158,38 @@ export default function Incidents() {
                 ))}
               </div>
             </div>
+
+            <div className="mt-6 pt-6 border-t border-slate-800">
+              <h3 className="text-slate-300 font-semibold mb-3">MITRE ATT&CK Techniques</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {selected.mitreTechniques?.map((t) => (
+                  <span key={t.id} className="text-xs bg-purple-950 border border-purple-800 text-purple-300 px-3 py-1 rounded-lg">
+                    {t.technique_id}: {t.name}
+                  </span>
+                ))}
+                {(!selected.mitreTechniques || selected.mitreTechniques.length === 0) && (
+                  <p className="text-slate-500 text-sm">No techniques mapped yet.</p>
+                )}
+              </div>
+              <select
+                onChange={(e) => e.target.value && addTechnique(Number(e.target.value))}
+                defaultValue=""
+                className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-white text-sm"
+              >
+                <option value="" disabled>+ Add technique...</option>
+                {techniques.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.technique_id}: {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
+
