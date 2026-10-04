@@ -106,6 +106,21 @@ Visit `http://localhost:5173/login`.
 - All protected API routes verify a JWT token server-side via middleware.
 - Input validation is applied to every IOC type before it reaches the
   database, using parameterized queries throughout to prevent SQL injection.
+  ## Security Testing
+
+Manual security tests performed on the API, with results:
+
+| Test | Method | Result |
+|---|---|---|
+| SQL injection via IOC value | Submitted `1.1.1.1"; DROP TABLE iocs; --` as an IP value | Rejected by validation layer before reaching the database (`"Invalid IP address format"`) |
+| Unauthenticated access to protected routes | `GET /api/iocs` with no Authorization header | Correctly rejected (`"No token provided"`) |
+| Incorrect login credentials | Valid email, wrong password | Rejected with a generic error (`"invalid email or password"`) that does not reveal whether the email exists |
+| Password exposure in API responses | Inspected `/api/auth/register` response | Confirmed no `password` or `password_hash` field is ever returned, only `id`, `email`, `role`, `created_at` |
+
+These tests confirm that input validation, parameterized queries, and JWT-based
+route protection are functioning as intended, satisfying the project's core
+security requirements (input validation, parameterized queries, authentication,
+and no sensitive data exposure).
 
 ## What This Project Is Not
 
