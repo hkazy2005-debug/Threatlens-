@@ -5,6 +5,7 @@ import IOCManagement from "./page/IOCs/IOCManagement";
 import Alerts from "./page/Alerts/Alerts";
 import Incidents from "./page/Incidents/Incidents";
 import Hunting from "./page/Hunting/Hunting";
+import Executive from "./page/Executive/Executive";
 
 function App() {
   return (
@@ -16,12 +17,12 @@ function App() {
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/incidents" element={<Incidents />} />
         <Route path="/hunting" element={<Hunting />} />
+        <Route path="/executive" element={<Executive />} />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
 
 export default App;
 
