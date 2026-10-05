@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from "recharts";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
-
+import { ShieldAlert, AlertTriangle, Bell, FolderOpen } from "lucide-react";
 
 export default function Dashboard() {
   const [status, setStatus] = useState("Checking backend...");
@@ -64,26 +64,38 @@ export default function Dashboard() {
           }
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
-            <p className="text-slate-400 text-sm">Total IOCs</p>
-            <p className="text-3xl font-bold text-white mt-1">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-sm">Total IOCs</p>
+              <ShieldAlert className="w-4 h-4 text-slate-500" />
+            </div>
+            <p className="text-3xl font-bold text-white">
               {totalIOCs === null ? "—" : totalIOCs}
             </p>
           </div>
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
-            <p className="text-slate-400 text-sm">Critical IOCs</p>
-            <p className="text-3xl font-bold text-red-400 mt-1">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-sm">Critical IOCs</p>
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+            </div>
+            <p className="text-3xl font-bold text-red-400">
               {criticalIOCs === null ? "—" : criticalIOCs}
             </p>
           </div>
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
-            <p className="text-slate-400 text-sm">Active Alerts</p>
-            <p className="text-3xl font-bold text-amber-400 mt-1">—</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-sm">Active Alerts</p>
+              <Bell className="w-4 h-4 text-amber-500" />
+            </div>
+            <p className="text-3xl font-bold text-amber-400">—</p>
           </div>
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
-            <p className="text-slate-400 text-sm">Open Incidents</p>
-            <p className="text-3xl font-bold text-blue-400 mt-1">—</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-slate-400 text-sm">Open Incidents</p>
+              <FolderOpen className="w-4 h-4 text-blue-500" />
+            </div>
+            <p className="text-3xl font-bold text-blue-400">—</p>
           </div>
         </div>
 
