@@ -112,9 +112,13 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-8 rounded-xl bg-slate-900 border border-slate-800 p-5">
-          <p className="text-slate-400 text-sm">Backend Connection Status</p>
-          <p className="text-white mt-1">{status}</p>
+               <div className="mt-6 flex items-center gap-2 text-sm">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              status.includes("running") ? "bg-green-400" : "bg-red-400"
+            } animate-pulse`}
+          />
+          <span className="text-slate-500">{status}</span>
         </div>
       </div>
     </div>
