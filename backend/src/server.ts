@@ -8,6 +8,8 @@ import { enrichIP, enrichHash } from "./enrichment";
 import { calculateTRIS } from "./scoring";
 import { ingestFirewallEvents, ingestDNSEvents, ingestEDREvents } from "./ingestion";
 import { runCorrelation } from "./correlation";
+import { logAction } from "./audit";
+
 
 const app = express();
 const PORT = 4000;
@@ -380,6 +382,20 @@ app.get("/api/mitre/techniques", requireAuth, async (req, res) => {
     res.status(500).json({ error: String(err) });
   }
 });
+
+
+// Get audit logs
+app.get("/api/audit-logs", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 100"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
 
 // Map a technique to an incident
 app.post("/api/incidents/:id/mitre", requireAuth, async (req, res) => {

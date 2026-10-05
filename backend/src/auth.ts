@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { pool } from "./db";
+import { logAction } from "./audit";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
@@ -66,6 +67,8 @@ router.post("/login", async (req, res) => {
       { expiresIn: "8h" }
     );
 
+    await logAction({ userEmail: user.email, action: "LOGIN", result: "success" });
+
     res.json({
       token,
       user: { id: user.id, email: user.email, role: user.role },
@@ -76,4 +79,3 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
-
