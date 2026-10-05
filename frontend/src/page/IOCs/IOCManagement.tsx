@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar";
+import PageHeader from "../../components/PageHeader";
+
 
 interface IOC {
   id: number;
@@ -90,11 +93,10 @@ export default function IOCManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 p-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-1">IOC Management</h1>
-        <p className="text-slate-400 mb-8">Manage indicators of compromise</p>
-
+    <div className="min-h-screen bg-slate-950">
+      <Navbar />
+            <div className="max-w-5xl mx-auto p-8">
+        <PageHeader title="IOC Management" subtitle="Manage indicators of compromise" />
         {/* Add IOC Form */}
         <form
           onSubmit={handleAddIOC}

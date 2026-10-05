@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar";
+import PageHeader from "../../components/PageHeader";
 
 interface Alert {
   id: number;
@@ -69,17 +71,10 @@ export default function Alerts() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Alerts</h1>
-            <p className="text-slate-400">Actionable security alerts from correlation</p>
-          </div>
-          <a href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm">
-            ← Back to Dashboard
-          </a>
-        </div>
+    <div className="min-h-screen bg-slate-950">
+      <Navbar />
+      <div className="max-w-5xl mx-auto p-8">
+        <PageHeader title="Alerts" subtitle="Actionable security alerts from correlation" />
 
         {loading ? (
           <p className="text-slate-400">Loading alerts...</p>
@@ -136,3 +131,4 @@ export default function Alerts() {
 }
 
 
+  

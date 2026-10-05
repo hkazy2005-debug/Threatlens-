@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar";
+import PageHeader from "../../components/PageHeader";
 
 interface Incident {
   id: number;
@@ -94,18 +96,11 @@ export default function Incidents() {
     return "text-slate-400";
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Incidents</h1>
-            <p className="text-slate-400">Investigation case files</p>
-          </div>
-          <a href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm">
-            ← Back to Dashboard
-          </a>
-        </div>
+   return (
+    <div className="min-h-screen bg-slate-950">
+      <Navbar />
+      <div className="max-w-5xl mx-auto p-8">
+        <PageHeader title="Incidents" subtitle="Investigation case files" />
 
         {loading ? (
           <p className="text-slate-400">Loading incidents...</p>

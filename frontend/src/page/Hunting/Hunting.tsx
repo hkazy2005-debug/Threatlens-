@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar";
+import PageHeader from "../../components/PageHeader";
 
 interface IOC {
   id: number;
@@ -40,17 +42,10 @@ export default function Hunting() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Threat Hunting</h1>
-            <p className="text-slate-400">Search and filter all known indicators</p>
-          </div>
-          <a href="/dashboard" className="text-blue-400 hover:text-blue-300 text-sm">
-            ← Back to Dashboard
-          </a>
-        </div>
+    <div className="min-h-screen bg-slate-950">
+      <Navbar />
+      <div className="max-w-5xl mx-auto p-8">
+        <PageHeader title="Threat Hunting" subtitle="Search and filter all known indicators" />
 
         <div className="rounded-xl bg-slate-900 border border-slate-800 p-5 mb-6 flex flex-wrap gap-3">
           <input
@@ -122,4 +117,3 @@ export default function Hunting() {
     </div>
   );
 }
-
