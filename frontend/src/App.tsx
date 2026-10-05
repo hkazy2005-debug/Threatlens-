@@ -6,6 +6,8 @@ import Alerts from "./page/Alerts/Alerts";
 import Incidents from "./page/Incidents/Incidents";
 import Hunting from "./page/Hunting/Hunting";
 import Executive from "./page/Executive/Executive";
+import AuditLogs from "./page/AuditLogs/AuditLogs";
+
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
         <Route path="/incidents" element={<Incidents />} />
         <Route path="/hunting" element={<Hunting />} />
         <Route path="/executive" element={<Executive />} />
+        <Route path="/audit-logs" element={<AuditLogs />} />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
