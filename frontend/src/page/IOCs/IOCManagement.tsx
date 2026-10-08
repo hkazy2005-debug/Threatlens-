@@ -20,7 +20,7 @@ export default function IOCManagement() {
   const [severity, setSeverity] = useState("Medium");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [scoringId, setScoringId] = useState<number | null>(null);
+  const [, setScoringId] = useState<number | null>(null);
   const [scoreResult, setScoreResult] = useState<any>(null);
 
     const loadIOCs = () => {
