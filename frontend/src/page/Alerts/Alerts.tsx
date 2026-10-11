@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 interface Alert {
   id: number;
@@ -20,7 +21,7 @@ export default function Alerts() {
 
   const loadAlerts = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/alerts", {
+    fetch(`${API_BASE_URL}/api/alerts`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -44,7 +45,7 @@ export default function Alerts() {
 
   const updateStatus = async (id: number, status: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:4000/api/alerts/${id}/status`, {
+    await fetch(`${API_BASE_URL}/api/alerts/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

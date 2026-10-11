@@ -12,9 +12,10 @@ import { logAction } from "./audit";
 
 
 const app = express();
-const PORT = 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
-app.use(cors());
+const allowedOrigin = process.env.CORS_ORIGIN;
+app.use(cors(allowedOrigin ? { origin: allowedOrigin } : undefined));
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 
@@ -493,8 +494,10 @@ app.post("/api/events/import", requireAuth, async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ThreatLens backend running on http://localhost:${PORT}`);
+  console.log(`ThreatLens backend listening on port ${PORT}`);
 });
+
+export default app;
 
 
 

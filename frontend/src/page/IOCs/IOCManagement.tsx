@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 
 interface IOC {
@@ -25,7 +26,7 @@ export default function IOCManagement() {
 
     const loadIOCs = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/iocs", {
+    fetch(`${API_BASE_URL}/api/iocs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -52,7 +53,7 @@ export default function IOCManagement() {
     if (!value) return;
     setError("");
 
-    const res = await fetch("http://localhost:4000/api/iocs", {
+    const res = await fetch(`${API_BASE_URL}/api/iocs`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value, type, severity, confidence: 50 }),
@@ -74,7 +75,7 @@ export default function IOCManagement() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:4000/api/iocs/${id}/tris`, {
+      const res = await fetch(`${API_BASE_URL}/api/iocs/${id}/tris`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

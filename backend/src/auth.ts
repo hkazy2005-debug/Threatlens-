@@ -5,7 +5,11 @@ import { pool } from "./db";
 import { logAction } from "./audit";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET must be configured before the API can start.");
+}
 
 // Register a new user
 router.post("/register", async (req, res) => {

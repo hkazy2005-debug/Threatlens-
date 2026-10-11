@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET must be configured before the API can start.");
+}
 
 export interface AuthRequest extends Request {
   user?: { userId: number; email: string; role: string };
@@ -22,7 +26,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
 
  
   try {
-           const decoded = jwt.verify(token, JWT_SECRET) as unknown as {
+          const decoded = jwt.verify(token, JWT_SECRET!) as unknown as {
       userId: number;
       email: string;
       role: string;

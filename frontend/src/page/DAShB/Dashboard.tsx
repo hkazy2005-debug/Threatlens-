@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
 import { ShieldAlert, AlertTriangle, Bell, FolderOpen } from "lucide-react";
+import { API_BASE_URL } from "../../config";
 
 export default function Dashboard() {
   const [status, setStatus] = useState("Checking backend...");
@@ -12,13 +13,13 @@ export default function Dashboard() {
   const [severityData, setSeverityData] = useState<{ name: string; count: number }[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/health")
+    fetch(`${API_BASE_URL}/api/health`)
       .then((res) => res.json())
       .then((data) => setStatus(data.message))
       .catch(() => setStatus("Could not reach backend."));
 
        const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/iocs", {
+    fetch(`${API_BASE_URL}/api/iocs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

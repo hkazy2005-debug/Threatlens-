@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 interface AuditLog {
   id: number;
@@ -17,7 +18,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/audit-logs", {
+    fetch(`${API_BASE_URL}/api/audit-logs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

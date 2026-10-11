@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 
 interface IOC {
@@ -27,9 +28,9 @@ export default function Executive() {
     const headers = { Authorization: `Bearer ${token}` };
 
     Promise.all([
-      fetch("http://localhost:4000/api/iocs", { headers }).then((r) => r.json()),
-      fetch("http://localhost:4000/api/alerts", { headers }).then((r) => r.json()),
-      fetch("http://localhost:4000/api/incidents", { headers }).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/api/iocs`, { headers }).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/api/alerts`, { headers }).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/api/incidents`, { headers }).then((r) => r.json()),
     ])
       .then(([iocsData, alertsData, incidentsData]) => {
         setIocs(Array.isArray(iocsData) ? iocsData : []);

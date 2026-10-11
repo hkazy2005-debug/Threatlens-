@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 interface IOC {
   id: number;
@@ -19,7 +20,7 @@ export default function Hunting() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/iocs", {
+    fetch(`${API_BASE_URL}/api/iocs`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import PageHeader from "../../components/PageHeader";
+import { API_BASE_URL } from "../../config";
 
 interface Incident {
   id: number;
@@ -27,7 +28,7 @@ export default function Incidents() {
 
   const loadIncidents = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/incidents", {
+    fetch(`${API_BASE_URL}/api/incidents`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -43,7 +44,7 @@ export default function Incidents() {
 
   const viewIncident = async (id: number) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:4000/api/incidents/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/incidents/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -53,7 +54,7 @@ export default function Incidents() {
   const addTechnique = async (techniqueId: number) => {
     if (!selected) return;
     const token = localStorage.getItem("token");
-    await fetch(`http://localhost:4000/api/incidents/${selected.incident.id}/mitre`, {
+    await fetch(`${API_BASE_URL}/api/incidents/${selected.incident.id}/mitre`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,7 +67,7 @@ export default function Incidents() {
 
   const downloadReport = async (id: number, incidentNumber: string) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://localhost:4000/api/incidents/${id}/export`, {
+    const res = await fetch(`${API_BASE_URL}/api/incidents/${id}/export`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const blob = await res.blob();
@@ -81,7 +82,7 @@ export default function Incidents() {
   useEffect(() => {
     loadIncidents();
     const token = localStorage.getItem("token");
-    fetch("http://localhost:4000/api/mitre/techniques", {
+    fetch(`${API_BASE_URL}/api/mitre/techniques`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
