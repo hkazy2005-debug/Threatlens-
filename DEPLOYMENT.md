@@ -18,7 +18,7 @@ This repository is prepared for a split deployment: the React/Vite frontend on V
    - `ABUSEIPDB_API_KEY` and `VIRUSTOTAL_API_KEY`: optional; enrichment features need them.
 3. Wait for the service to deploy. Check `https://YOUR-API.onrender.com/api/health`; it should return JSON with `status: "ok"`.
 
-The blueprint runs `npm ci`, builds the TypeScript API to `backend/dist`, starts it with `npm start`, and configures `/api/health` as its health check.
+The blueprint runs the API on Render's free web-service plan, then runs `npm ci`, builds the TypeScript API to `backend/dist`, starts it with `npm start`, and configures `/api/health` as its health check. Free services may sleep when idle and can take longer to respond on the first request; review the plan and any usage limits in Render before deployment.
 
 ## Deploy the frontend on Vercel
 
